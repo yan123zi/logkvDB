@@ -1,13 +1,14 @@
 package db
 
 import (
+	"io"
 	"log"
 	"os"
 )
 
 type LogKvDB struct {
-	ActivityFile *os.File          //	正在使用的File
-	Indexes      map[string]uint32 //	维护的内存kv键值对
+	ActivityFile *DBfile           //	正在使用的File
+	Indexes      map[string]int64 //	维护的内存kv键值对
 	DbPath       string            //	数据库文件存储目录
 }
 
@@ -27,7 +28,7 @@ func OpenLogKvDb(dbPath string) *LogKvDB {
 
 	kvDb := &LogKvDB{
 		ActivityFile: dbFile,
-		Indexes:      map[string]uint32{},
+		Indexes:      map[string]int64{},
 		DbPath:       dbPath,
 	}
 	loadIndexFromDb(kvDb)
@@ -36,7 +37,33 @@ func OpenLogKvDb(dbPath string) *LogKvDB {
 
 //	加载索引从文件中
 func loadIndexFromDb(kvDb *LogKvDB) {
-	var offset int64=0
-	buf:=make([]byte,10)
-	:=kvDb.ActivityFile.ReadAt(buf,offset)
+	var offset int64 = 0
+	for {
+		buf := make([]byte, 2048)
+		redNum, err := kvDb.ActivityFile.File.ReadAt(buf, offset)
+		if redNum>0 {
+			entry := DecodeEntry(buf[:redNum])
+			kvDb.Indexes[string(entry.Key)] = offset
+			offset += entry.GetLen()
+		}
+		if err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				log.Printf("readAt err:%s", err.Error())
+				return
+			}
+		}
+	}
+	kvDb.ActivityFile.Offset += offset
+}
+
+func (db *LogKvDB) Put(key string, value string) error {
+	entry := NewEntry(key, value, PUT)
+	err:=db.ActivityFile.Add(entry)
+	if err != nil {
+		return err
+	}
+	db.Indexes[key]=db.ActivityFile.Offset
+	return nil
 }
