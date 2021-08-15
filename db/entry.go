@@ -39,22 +39,22 @@ func EncodeEntry(entry *Entry) []byte {
 	binary.BigEndian.PutUint32(buf[4:8], entry.ValueSize)
 	binary.BigEndian.PutUint16(buf[8:10], entry.Mark)
 	copy(buf[10:CommonFileLength+entry.KeySize], entry.Key)
-	copy(buf[CommonFileLength+entry.ValueSize:], entry.Value)
+	copy(buf[CommonFileLength+entry.KeySize:], entry.Value)
 	return buf
 }
 
 func DecodeEntry(buf []byte) *Entry {
-	entry := &Entry{}
+	//entry := &Entry{}
 	keySize := binary.BigEndian.Uint32(buf[0:4])
 	valueSize := binary.BigEndian.Uint32(buf[4:8])
 	mark := binary.BigEndian.Uint16(buf[8:10])
-	key := buf[CommonFileLength:entry.KeySize]
-	value := buf[CommonFileLength+entry.KeySize:]
+	//key := buf[CommonFileLength:entry.KeySize]
+	//value := buf[CommonFileLength+entry.KeySize:]
 	return &Entry{
 		KeySize:   keySize,
 		ValueSize: valueSize,
 		Mark:      mark,
-		Key:       key,
-		Value:     value,
+		//Key:       key,
+		//Value:     value,
 	}
 }

@@ -6,10 +6,10 @@ import (
 )
 
 func main() {
-	kvDb:=db.OpenLogKvDb("tmp/kvDB")
-	err:=kvDb.Put("yan1","zijiang")
+	kvDb := db.OpenLogKvDb("tmp/kvDB")
+	err := kvDb.Put("yan7", "zijiang")
 	if err != nil {
-		fmt.Println("err:",err)
+		fmt.Println("err:", err)
 		return
 	}
 }

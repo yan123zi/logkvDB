@@ -1,6 +1,8 @@
 package db
 
 import (
+	"errors"
+	"io"
 	"log"
 	"os"
 )
@@ -26,11 +28,39 @@ func NewDbFile(dbPath string) (*DBfile, error) {
 }
 
 func (db *DBfile) Add(entry *Entry) error {
-	_, err := db.File.WriteAt(EncodeEntry(entry), db.Offset)
+	entryByt := EncodeEntry(entry)
+	if len(entryByt) == 0 {
+		return errors.New("entry is null")
+	}
+	entryByt=append(entryByt,'\n')
+	_, err := db.File.WriteAt(entryByt, db.Offset)
 	if err != nil {
 		log.Printf("Add entry to DbFile err:%s", err.Error())
 		return err
 	}
-	db.Offset+=entry.GetLen()
+	db.Offset += entry.GetLen()
 	return nil
+}
+
+func (db *DBfile) Read(offset int64) (*Entry, error) {
+	buf := make([]byte, 2048)
+	readNum, err := db.File.ReadAt(buf, offset)
+	if err == io.EOF {
+		if readNum == 0 {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
+
+	entry := DecodeEntry(buf[:readNum])
+	if entry.KeySize > 0 {
+		entry.Key = buf[CommonFileLength : CommonFileLength+entry.KeySize]
+		offset += int64(CommonFileLength + entry.KeySize)
+	}
+	if entry.ValueSize > 0 {
+		entry.Value = buf[offset:]
+		offset += int64(entry.ValueSize)
+	}
+	return entry, nil
 }
