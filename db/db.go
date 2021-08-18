@@ -1,7 +1,6 @@
 package db
 
 import (
-	"bytes"
 	"errors"
 	"io"
 	"log"
@@ -49,18 +48,18 @@ func (db *DBfile) Read(offset int64) (*Entry, error) {
 	buf := make([]byte, CommonFileLength)
 	readNum, err := db.File.ReadAt(buf, offset)
 	if err == io.EOF {
-		if readNum == 0 || bytes.Equal(buf[:readNum], []byte{'\n'}) {
+		if readNum == 0 {
 			return nil, err
 		}
-	} else if err!=nil {
+	} else if err != nil {
 		return nil, err
 	}
 
 	entry := DecodeEntry(buf[:readNum])
 	if entry.KeySize > 0 {
-		buf:=make([]byte,entry.KeySize)
+		buf := make([]byte, entry.KeySize)
 		offset += int64(CommonFileLength)
-		redNums,err:=db.File.ReadAt(buf,offset)
+		redNums, err := db.File.ReadAt(buf, offset)
 		if err != nil {
 			return nil, err
 		}
@@ -68,10 +67,10 @@ func (db *DBfile) Read(offset int64) (*Entry, error) {
 
 	}
 	if entry.ValueSize > 0 {
-		buf:=make([]byte,entry.ValueSize)
-		offset += int64(CommonFileLength+entry.KeySize)
-		redNums,err:=db.File.ReadAt(buf,offset)
-		if err != nil &&err!=io.EOF{
+		buf := make([]byte, entry.ValueSize)
+		offset += int64(CommonFileLength + entry.KeySize)
+		redNums, err := db.File.ReadAt(buf, offset)
+		if err != nil {
 			return nil, err
 		}
 		entry.Value = buf[:redNums]
