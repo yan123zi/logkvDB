@@ -7,7 +7,7 @@ import (
 
 func main() {
 	kvDb := db.OpenLogKvDb("tmp/kvDB")
-	err := kvDb.Put("yan15", "zijiang")
+	err := kvDb.Put("yan18", "zijiang")
 	if err != nil {
 		fmt.Println("err:", err)
 		return

@@ -68,7 +68,7 @@ func (db *DBfile) Read(offset int64) (*Entry, error) {
 	}
 	if entry.ValueSize > 0 {
 		buf := make([]byte, entry.ValueSize)
-		offset += int64(CommonFileLength + entry.KeySize)
+		offset += int64(entry.KeySize)
 		redNums, err := db.File.ReadAt(buf, offset)
 		if err != nil {
 			return nil, err

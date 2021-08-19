@@ -49,10 +49,9 @@ func loadIndexFromDb(kvDb *LogKvDB) {
 			}
 		}
 
-		if _, ok := kvDb.Indexes[string(entry.Key)]; !ok && entry.GetLen() > 0 {
-			offset += entry.GetLen()
-			kvDb.Indexes[string(entry.Key)] = offset
-		}
+		kvDb.Indexes[string(entry.Key)] = offset
+		offset += entry.GetLen()
+
 	}
 	kvDb.ActivityFile.Offset = offset
 }
